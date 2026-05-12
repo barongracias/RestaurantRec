@@ -1,2 +1,7 @@
 environment_variables.sh
 res_venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.db
+data/
