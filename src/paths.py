@@ -1,17 +1,7 @@
 from pathlib import Path
-import os
 
-# directory paths
-PARENT_DIR = Path(__file__).parent.resolve().parent
+PARENT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = PARENT_DIR / 'data'
-# MODELS_DIR = PARENT_DIR / 'models'
-# RESULTS_DIR = PARENT_DIR / 'results'
+DB_PATH = PARENT_DIR / 'restaurants.db'
 
-if not Path(DATA_DIR).exists():
-    os.mkdir(DATA_DIR)
-
-# if not Path(MODELS_DIR).exists():
-    # os.mkdir(MODELS_DIR)
-
-# if not Path(RESULTS_DIR).exists():
-    # os.mkdir(RESULTS_DIR)
+DATA_DIR.mkdir(exist_ok=True)

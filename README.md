@@ -17,44 +17,47 @@ pip install -r requirements.txt
 
 ## API Key
 
-A `GOOGLE_API_KEY` environment variable must be set before running any script:
+Export your key before running any script:
 
 ```bash
 export GOOGLE_API_KEY="your-key-here"
 ```
 
-A sample helper (`environment_variables.sh`) is included — update it with your key and source it, or export the variable directly. Do not commit a real key to version control.
+`environment_variables.sh` is a convenience template — update it with your key and `source` it. Do not commit a real key to version control.
 
 ## Usage
 
 **1. Fetch data and populate the database:**
 
 ```bash
-python src/api_request.py
+python -m src.api_request
 ```
 
-Loops over predefined London neighbourhoods and cuisine types, paginates over `next_page_token`, and writes results to `restaurants.db`.
+Loops over predefined London neighbourhoods and cuisine types, paginates results via `next_page_token`, and writes to `restaurants.db` in the project root.
 
 **2. Inspect the data:**
 
 ```bash
-python src/data.py
+python -m src.data
 ```
 
-Prints a pandas view of Soho restaurants sorted by rating and review count.
+Prints a pandas view of Soho restaurants sorted by rating and review count. Import `src.data.load_restaurants()` in your own scripts to get the full DataFrame.
 
 ## Project Layout
 
 | Path | Description |
 |---|---|
 | `src/api_request.py` | Fetches restaurant data from Google Places and writes to `restaurants.db` |
-| `src/data.py` | Quick pandas view of the saved data |
+| `src/data.py` | Loads the database into a pandas DataFrame; CLI prints Soho results |
 | `src/logger.py` | Logging helper |
-| `src/paths.py` | Directory path constants |
-| `restaurants.db` | SQLite database created by `api_request.py` |
-| `data/` | Scratch directory created by `paths.py` |
+| `src/paths.py` | Centralised path constants (`DB_PATH`, `DATA_DIR`) |
+| `restaurants.db` | SQLite database created by `api_request.py` (git-ignored) |
+| `data/` | Scratch directory created on first import of `src.paths` |
 
 ## Notes
 
-- The collector is hard-coded for London with a 2–3 km search radius. Adjust the neighbourhood/cuisine lists or radius in `src/api_request.py` to target other areas.
-- API calls may incur cost and quota usage; run sparingly and rely on the cached `restaurants.db` for subsequent analysis.
+- Run scripts with `python -m src.<module>` from the project root so that `src` is importable as a package.
+- The collector targets London with a 3 km search radius. Adjust `NEIGHBORHOODS`, `CUISINES`, or the radius constant in `src/api_request.py` to target other areas.
+- API calls incur cost and quota usage; the cached `restaurants.db` can be reused for subsequent analysis without re-fetching.
+- If `GOOGLE_API_KEY` is not set, `api_request.py` exits with a clear error message rather than crashing with a traceback.
+- If `restaurants.db` does not exist when running `src.data`, a clear error message is shown instead of a traceback.
