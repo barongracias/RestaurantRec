@@ -36,16 +36,6 @@ def insert_data_to_db(cursor, data):
         ''', (restaurant['place_id'], restaurant['name'], restaurant.get('price_level'), restaurant.get('rating'), restaurant.get('user_ratings_total'), restaurant['tag']))
     cursor.connection.commit()
 
-# pull API key from env
-try:
-    api_key = os.environ['GOOGLE_API_KEY']
-except KeyError:
-    logger.error('Google API key environemnt variable not set')
-    raise
-
-# connect to googlemaps client
-gmaps = googlemaps.Client(key=api_key)
-
 # pick neighborhoods
 neighborhoods = ['Soho', 'Shoreditch', 'Covent Garden', 'Camden',
                  'Mayfair', 'Kensington', 'Paddington', 'Fitzrovia',
@@ -58,7 +48,7 @@ cuisines = ['traditional', 'mexican', 'latin', 'burger', 'pizza',
             'high cuisine', 'american', 'italian', 'turkish',
             'mediterranean', 'chinese', 'asian', 'indian', 'japanese',
             'british', 'persian', 'european', 'pub', 'thai', 'sushi',
-            'spanish', 'steak', 'pizza']
+            'spanish', 'steak']
 
 # list to store all restaurant data
 restaurants = []
@@ -71,11 +61,24 @@ def restaurant_response(response_items, tag):
         item_dict['tag'], item_dict['name'], item_dict['place_id'], item_dict['price_level'], item_dict['rating'], item_dict['user_ratings_total'] = tag, item.get('name'), item.get('place_id'), item.get('price_level'), item.get('rating'), item.get('user_ratings_total')
         restaurant_responses.append(item_dict)
     return restaurant_responses
-    
+
 # Fetch and store restaurant data for each neighborhood and cuisine
 def fetch_restaurant_data():
+    # pull API key from env and connect to googlemaps client inside the function
+    # so that importing this module does not fail when the env var is absent
+    try:
+        api_key = os.environ['GOOGLE_API_KEY']
+    except KeyError:
+        logger.error('Google API key environment variable not set')
+        raise
+    gmaps = googlemaps.Client(key=api_key)
+
     conn, cursor = setup_db()  # Initialize database connection and cursor
-    
+
+    # central London fallback coordinates used when neighborhood geocoding fails
+    LONDON_CENTER = {'lat': 51.5074, 'lng': -0.1278}
+    lat, lng = LONDON_CENTER['lat'], LONDON_CENTER['lng']
+
     # Step 1: Collect restaurant data for each neighborhood
     for neighborhood in neighborhoods:
         query_neighborhood = neighborhood + " London"

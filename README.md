@@ -1,42 +1,60 @@
 # RestaurantRec
 
-Prototype data puller that builds a SQLite catalogue of London restaurants using the Google Places API, then inspects the results with lightweight pandas queries.
-
-## What lives here
-- `src/api_request.py` — fetches restaurants for a list of neighbourhoods and cuisines, paginates over `next_page_token`, and writes the results into `restaurants.db`.
-- `src/data.py` — quick pandas view of the saved data (currently prints Soho rankings).
-- `src/logger.py` / `src/paths.py` — simple logging and directory helpers.
-- `data/` — scratch space created by `paths.py` (not used yet).
-- `restaurants.db` — SQLite database created by `api_request.py`.
-- `environment_variables.sh` — sample helper to export `GOOGLE_API_KEY` (replace with your own; the checked-in key should be rotated).
+Builds a SQLite catalogue of London restaurants using the Google Places API, then lets you inspect results with pandas queries.
 
 ## Prerequisites
-- Python 3.10+
-- Google Places API key with Places/Geocoding enabled
 
-Create a virtual environment and install dependencies:
+- Python 3.10+
+- Google Places API key with the **Places API** and **Geocoding API** enabled
+
+## Setup
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install googlemaps pandas
+pip install -r requirements.txt
 ```
 
+## API Key
+
+A `GOOGLE_API_KEY` environment variable must be set before running any script:
+
+```bash
+export GOOGLE_API_KEY="your-key-here"
+```
+
+A sample helper (`environment_variables.sh`) is included — update it with your key and source it, or export the variable directly. Do not commit a real key to version control.
+
 ## Usage
-1. Export your API key (or source `environment_variables.sh` after updating it):
-   ```bash
-   export GOOGLE_API_KEY="your-key-here"
-   ```
-2. Pull data and populate the database:
-   ```bash
-   python src/api_request.py
-   ```
-   This will loop over predefined London neighbourhoods and cuisine types, then write the combined results to `restaurants.db` (with `id`, `name`, `price_level`, `rating`, `num_reviews`, `neighbourhood`).
-3. Inspect the data (example Soho query):
-   ```bash
-   python src/data.py
-   ```
+
+**1. Fetch data and populate the database:**
+
+```bash
+python src/api_request.py
+```
+
+Loops over predefined London neighbourhoods and cuisine types, paginates over `next_page_token`, and writes results to `restaurants.db`.
+
+**2. Inspect the data:**
+
+```bash
+python src/data.py
+```
+
+Prints a pandas view of Soho restaurants sorted by rating and review count.
+
+## Project Layout
+
+| Path | Description |
+|---|---|
+| `src/api_request.py` | Fetches restaurant data from Google Places and writes to `restaurants.db` |
+| `src/data.py` | Quick pandas view of the saved data |
+| `src/logger.py` | Logging helper |
+| `src/paths.py` | Directory path constants |
+| `restaurants.db` | SQLite database created by `api_request.py` |
+| `data/` | Scratch directory created by `paths.py` |
 
 ## Notes
-- The collector is hard-coded for London and uses a 2–3 km radius; adjust the neighbourhood/cuisine lists or radius in `src/api_request.py` to target other areas.
-- API calls may incur cost/quotas; run sparingly and cache results in `restaurants.db`.
-- Extend `src/data.py` with richer analyses or export scripts as needed.
+
+- The collector is hard-coded for London with a 2–3 km search radius. Adjust the neighbourhood/cuisine lists or radius in `src/api_request.py` to target other areas.
+- API calls may incur cost and quota usage; run sparingly and rely on the cached `restaurants.db` for subsequent analysis.
